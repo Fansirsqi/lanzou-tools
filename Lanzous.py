@@ -1,53 +1,11 @@
-import random
-import string
-
-import pandas as pd
 import requests
 
-
-def list_to_str(ls):
-    return ''.join(ls)
+import LanzousTools
 
 
-def set_vei(n: int):
-    num = '1234567890'
-    a_str = list_to_str(list(string.ascii_lowercase))
-    A_str = list_to_str(list(string.ascii_uppercase))
-    all_str = a_str + num + A_str
-    vei = ''
-    for key in range(n):
-        key = random.choice(all_str)
-        vei = ''.join([vei, key])
-    return vei
-
-
-def get_this_folder_all_folder_id(dic: list):
-    """
-    :param dic: [dict,dict](res)传入上个函数返回的数据即可
-    :return:
-    """
-    ls = []
-    for i in dic[0]['text']:
-        ls.append(i['fol_id'])
-    return ls
-
-
-def get_this_folder_all_file_info(dic: list):
-    """获取当前文件夹下所有文件信息"""
-    ls = []
-    for item in dic[1]['text']:
-        ls.append({'name': item['name_all'],
-                   'id': item['id'],
-                   'size': item['size'],
-                   'tpe': 'file'})
-    return ls
-
-
-
-
-class LanZou:
-    uid = ''  # uid请填入
-    fid = ''  # fid 默认-1
+class Lanzou:
+    uid = '454001'  # uid请填入
+    fid = '-1'  # fid 默认-1
     headers = {
         'accept': 'application/json, text/javascript, */*; q=0.01',
         'accept-encoding': 'gzip, deflate, br',
@@ -70,11 +28,12 @@ class LanZou:
     }
 
     def exc_index_fold(self):
+        """获取首页资源"""
         index_url = f'https://pc.woozooo.com/doupload.php?uid={self.uid}'
-        fopayload = f'task=47&folder_id=-1&vei={set_vei(16)}'
+        fopayload = f'task=47&folder_id=-1&vei={LanzousTools.set_vei(16)}'
         fores = requests.post(url=index_url, headers=self.headers, data=fopayload).json()
         # print(fores) 文件夹返回
-        fepayload = f'task=5&folder_id=-1&pg=1&vei={set_vei(16)}'
+        fepayload = f'task=5&folder_id=-1&pg=1&vei={LanzousTools.set_vei(16)}'
         feres = requests.post(url=index_url, headers=self.headers, data=fepayload).json()
         # print(feres)  文件返回
         return [fores, feres]
@@ -82,10 +41,10 @@ class LanZou:
     def get_folder_all_info(self, fid: str):
         """获取文件夹，以及下级文件"""
         index_url = f'https://pc.woozooo.com/doupload.php?uid={self.uid}'
-        fopayload = f'task=47&folder_id={fid}&vei={set_vei(16)}'
+        fopayload = f'task=47&folder_id={fid}&vei={LanzousTools.set_vei(16)}'
         fores = requests.post(url=index_url, headers=self.headers, data=fopayload).json()
         # print(fores)
-        fepayload = f'task=5&folder_id={fid}&pg=1&vei={set_vei(16)}'
+        fepayload = f'task=5&folder_id={fid}&pg=1&vei={LanzousTools.set_vei(16)}'
         feres = requests.post(url=index_url, headers=self.headers, data=fepayload).json()
         # print(feres)
         return [fores, feres]
@@ -127,6 +86,26 @@ class LanZou:
         elif tpe == 'file':
             return res['is_newd'] + '/' + res['f_id'], res['pwd']
 
+    def get_this_folder_all_file_info(self, dic: list):
+        """获取当前文件夹下所有文件信息"""
+        ls = []
+        for item in dic[1]['text']:
+            ls.append({'name': item['name_all'],
+                       'id': item['id'],
+                       'size': item['size'],
+                       'tpe': 'file'})
+        return ls
+
+    def get_this_folder_all_folder_id(self, dic: list):
+        """
+        :param dic: [dict,dict](res)传入上个函数返回的数据即可
+        :return:
+        """
+        ls = []
+        for i in dic[0]['text']:
+            ls.append(i['fol_id'])
+        return ls
+
     def get_all_file_info(self):
         """获取所有文件信息"""
         index_file_info = self.get_index_file_info()
@@ -134,7 +113,7 @@ class LanZou:
         all_file_info = []
         for fid in all_folder_ids:
             item_folder_list = self.get_folder_all_info(fid)  # 根据所有文件夹id 获取所有文件的info_list
-            all_file_info = get_this_folder_all_file_info(item_folder_list) + all_file_info
+            all_file_info = self.get_this_folder_all_file_info(item_folder_list) + all_file_info
         all_file_info = index_file_info + all_file_info
         return all_file_info
 
@@ -144,7 +123,7 @@ class LanZou:
         all_folder_ids = []
         for fid in index_folder_ids:
             item_folder_list = self.get_folder_all_info(fid)  # 这里直接拿到文件夹id去解析有无子目录，有的话则添加进列表，避免遗漏
-            all_folder_ids = get_this_folder_all_folder_id(item_folder_list) + all_folder_ids
+            all_folder_ids = self.get_this_folder_all_folder_id(item_folder_list) + all_folder_ids
         all_folder_ids = index_folder_ids + all_folder_ids
         return all_folder_ids
 
@@ -166,24 +145,3 @@ class LanZou:
         for i in all_fid:
             wl.append(self.get_share_link('folder', i))
         return [ex_data, wl]
-
-
-
-class Tools(LanZou):
-    def table(data: list):
-        """处理函数generate_form返回的数据，写入表格"""
-        soft_table_title = ['SOFTNAME', 'SHARELINK', 'SIZE', 'PASSWORD']
-        folder_table_title = ['FOLDERNAME', 'SHARELINK', 'PASSWORD', 'DESC']
-        pd_soft = pd.DataFrame(data[0], columns=soft_table_title)
-        pd_soft.to_excel('lanzou_download.xlsx', index=False, sheet_name='soft-list')
-        writer = pd.ExcelWriter(r'lanzou_download.xlsx', mode='a', engine='openpyxl')
-        pd_folder = pd.DataFrame(data[1], columns=folder_table_title)
-        pd_folder.to_excel(writer, index=False, sheet_name='folder-list')
-        writer.save()
-        writer.close()
-        print('excel写入完毕')
-
-
-obj = LanZou()
-
-obj.generate_form()
