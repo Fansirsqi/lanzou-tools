@@ -1,5 +1,6 @@
 import random
 import string
+
 import pandas as pd
 import requests
 
@@ -40,6 +41,8 @@ def get_this_folder_all_file_info(dic: list):
                    'size': item['size'],
                    'tpe': 'file'})
     return ls
+
+
 
 
 class LanZou:
@@ -130,7 +133,7 @@ class LanZou:
         all_folder_ids = self.get_all_folder_id()
         all_file_info = []
         for fid in all_folder_ids:
-            item_folder_list = self.get_folder_all_info(fid)
+            item_folder_list = self.get_folder_all_info(fid)  # 根据所有文件夹id 获取所有文件的info_list
             all_file_info = get_this_folder_all_file_info(item_folder_list) + all_file_info
         all_file_info = index_file_info + all_file_info
         return all_file_info
@@ -140,7 +143,7 @@ class LanZou:
         index_folder_ids = self.get_index_folder_id()
         all_folder_ids = []
         for fid in index_folder_ids:
-            item_folder_list = self.get_folder_all_info(fid)
+            item_folder_list = self.get_folder_all_info(fid)  # 这里直接拿到文件夹id去解析有无子目录，有的话则添加进列表，避免遗漏
             all_folder_ids = get_this_folder_all_folder_id(item_folder_list) + all_folder_ids
         all_folder_ids = index_folder_ids + all_folder_ids
         return all_folder_ids
@@ -162,12 +165,19 @@ class LanZou:
         wl = []
         for i in all_fid:
             wl.append(self.get_share_link('folder', i))
+        return [ex_data, wl]
+
+
+
+class Tools(LanZou):
+    def table(data: list):
+        """处理函数generate_form返回的数据，写入表格"""
         soft_table_title = ['SOFTNAME', 'SHARELINK', 'SIZE', 'PASSWORD']
         folder_table_title = ['FOLDERNAME', 'SHARELINK', 'PASSWORD', 'DESC']
-        pd_soft = pd.DataFrame(ex_data, columns=soft_table_title)
+        pd_soft = pd.DataFrame(data[0], columns=soft_table_title)
         pd_soft.to_excel('lanzou_download.xlsx', index=False, sheet_name='soft-list')
         writer = pd.ExcelWriter(r'lanzou_download.xlsx', mode='a', engine='openpyxl')
-        pd_folder = pd.DataFrame(wl, columns=folder_table_title)
+        pd_folder = pd.DataFrame(data[1], columns=folder_table_title)
         pd_folder.to_excel(writer, index=False, sheet_name='folder-list')
         writer.save()
         writer.close()
