@@ -4,7 +4,7 @@ import LanzousTools
 
 
 class Lanzou:
-    uid = '454001'  # uid请填入
+    uid = ''  # uid请填入
     fid = '-1'  # fid 默认-1
     headers = {
         'accept': 'application/json, text/javascript, */*; q=0.01',
@@ -12,6 +12,7 @@ class Lanzou:
         'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
         'cache-control': 'no-cache',
         'content-length': '50',
+        # 此处cookie 需要手动校正一下，未做太多处理
         'cookie': f'ylogin={uid}; folder_id_c={fid}; _uab_collina=166719911702083626287627; PHPSESSID=bslpegm0kl88om0jmuhoius968e1cpcd; uag=98d0592cda8050aaec088d732be8be1b; phpdisk_info=UGBSZQ1rUW0PPQBhD1xVOwJbAXsBMVxzD2VXYlImAQpVNFQwVTZRZAJkAjMKY1M6UDVQMF5hUjEONAlqAGcKalBmUmINbVFvDz0AMQ9jVTYCNgFiATlcbQ9uV2ZSMgE2VVhUZ1U%2FUW8CNwJrCmVTOlAzUGdeN1Ix',
         'origin': 'https://pc.woozooo.com',
         'pragma': 'no-cache',
